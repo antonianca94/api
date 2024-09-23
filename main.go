@@ -49,6 +49,7 @@ func main() {
 	routes.RegisterUserRoutes(app, db)
 	routes.RegisterRoleRoutes(app, db)
 	routes.RegisterProductRoutes(app, db)
+	routes.RegisterImageRoutes(app, db)
 
 	// Adicionar rota para a documentação Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault) // serve swagger

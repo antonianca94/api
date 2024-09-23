@@ -15,6 +15,53 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/images/{product_id}": {
+            "get": {
+                "description": "Obtém as imagens associadas a um produto específico",
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Obter imagem do produto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.Image"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Imagem não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar imagem",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "description": "Obtém todos os produtos",
@@ -55,7 +102,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/sku/{sku}": {
+        "/products/{sku}": {
             "get": {
                 "description": "Obtém um produto com base no SKU",
                 "tags": [
@@ -99,7 +146,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/user/{user_id}": {
+        "/products/{user_id}": {
             "get": {
                 "description": "Obtém todos os produtos associados a um usuário específico",
                 "tags": [
@@ -660,6 +707,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controllers.Image": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "products_id": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "controllers.Product": {
             "type": "object",
             "properties": {

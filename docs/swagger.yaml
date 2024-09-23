@@ -1,5 +1,18 @@
 basePath: /
 definitions:
+  controllers.Image:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      path:
+        type: string
+      products_id:
+        type: integer
+      type:
+        type: string
+    type: object
   controllers.Product:
     properties:
       category_name:
@@ -75,6 +88,37 @@ info:
   title: API do AgroFood
   version: "1.0"
 paths:
+  /images/{product_id}:
+    get:
+      description: Obtém as imagens associadas a um produto específico
+      parameters:
+      - description: ID do Produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Image'
+            type: array
+        "404":
+          description: Imagem não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar imagem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter imagem do produto
+      tags:
+      - Images
   /products:
     get:
       description: Obtém todos os produtos
@@ -88,20 +132,7 @@ paths:
       summary: Obter todos os produtos
       tags:
       - Products
-  /products/home:
-    get:
-      description: Obtém todos os produtos com imagens em destaque
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/controllers.Product'
-            type: array
-      summary: Obter todos os produtos em destaque
-      tags:
-      - Products
-  /products/sku/{sku}:
+  /products/{sku}:
     get:
       description: Obtém um produto com base no SKU
       parameters:
@@ -130,7 +161,7 @@ paths:
       summary: Obter produto por SKU
       tags:
       - Products
-  /products/user/{user_id}:
+  /products/{user_id}:
     get:
       description: Obtém todos os produtos associados a um usuário específico
       parameters:
@@ -153,6 +184,19 @@ paths:
               type: string
             type: object
       summary: Obter todos os produtos por ID do usuário
+      tags:
+      - Products
+  /products/home:
+    get:
+      description: Obtém todos os produtos com imagens em destaque
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+      summary: Obter todos os produtos em destaque
       tags:
       - Products
   /roles:

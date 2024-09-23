@@ -122,7 +122,7 @@ func GetAllProducts(db *sql.DB) fiber.Handler {
 // @Param user_id path int true "ID do Usuário"
 // @Success 200 {array} Product
 // @Failure 500 {object} map[string]string "Erro ao buscar produtos"
-// @Router /products/user/{user_id} [get]
+// @Router /products/{user_id} [get]
 func GetAllProductsByUserID(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID := c.Params("user_id")
@@ -174,7 +174,7 @@ func GetAllProductsByUserID(db *sql.DB) fiber.Handler {
 // @Success 200 {object} Product
 // @Failure 404 {object} map[string]string "Produto não encontrado"
 // @Failure 500 {object} map[string]string "Erro ao buscar produto"
-// @Router /products/sku/{sku} [get]
+// @Router /products/{sku} [get]
 func GetProductBySKU(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		sku := c.Params("sku")

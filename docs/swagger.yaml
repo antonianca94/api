@@ -1,0 +1,500 @@
+basePath: /
+definitions:
+  controllers.Product:
+    properties:
+      category_name:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: integer
+      sku:
+        type: string
+      users_id:
+        type: integer
+    type: object
+  controllers.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  controllers.User:
+    properties:
+      cpf:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role_name:
+        type: string
+      roles_id:
+        type: integer
+      status:
+        type: integer
+      surname:
+        type: string
+      username:
+        type: string
+    type: object
+  controllers.UserDetails:
+    properties:
+      cpf:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role_name:
+        type: string
+      roles_id:
+        type: integer
+      status:
+        type: integer
+      surname:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+host: localhost:3002
+info:
+  contact: {}
+  description: API para gerenciar o sistema Agrofood.
+  title: API do AgroFood
+  version: "1.0"
+paths:
+  /products:
+    get:
+      description: Obtém todos os produtos
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+      summary: Obter todos os produtos
+      tags:
+      - Products
+  /products/home:
+    get:
+      description: Obtém todos os produtos com imagens em destaque
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+      summary: Obter todos os produtos em destaque
+      tags:
+      - Products
+  /products/sku/{sku}:
+    get:
+      description: Obtém um produto com base no SKU
+      parameters:
+      - description: SKU do produto
+        in: path
+        name: sku
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Product'
+        "404":
+          description: Produto não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter produto por SKU
+      tags:
+      - Products
+  /products/user/{user_id}:
+    get:
+      description: Obtém todos os produtos associados a um usuário específico
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+        "500":
+          description: Erro ao buscar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter todos os produtos por ID do usuário
+      tags:
+      - Products
+  /roles:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Role'
+            type: array
+      summary: Lista todas as Roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados da nova Role
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Role'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Role criada com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Role'
+        "400":
+          description: Dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar Role
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria uma nova Role
+      tags:
+      - Roles
+  /roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da role
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Role deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Role not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete role
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta uma role pelo ID
+      tags:
+      - Roles
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da role
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Role'
+        "404":
+          description: Role não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar role
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca uma role pelo ID
+      tags:
+      - Roles
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da Role
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados da Role para atualização parcial
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role atualizada com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Role'
+        "400":
+          description: ID inválido ou dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Role não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar Role
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza parcialmente uma Role pelo ID
+      tags:
+      - Roles
+  /users:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.User'
+            type: array
+      summary: Lista todos os usuários
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Este endpoint cria um novo usuário
+      parameters:
+      - description: Dados do usuário
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: User created successfully'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: Invalid request body'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Failed to create user'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo usuário
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete user
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Exclui um usuário pelo ID
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.User'
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to fetch user
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retorna um usuário pelo ID
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do usuário a serem atualizados
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to update user
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza parcialmente os dados de um usuário pelo ID
+      tags:
+      - Users
+  /users/details/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserDetails'
+        "404":
+          description: Detalhes do usuário não encontrados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar detalhes do usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retorna os detalhes de um usuário pelo ID
+      tags:
+      - Users
+swagger: "2.0"

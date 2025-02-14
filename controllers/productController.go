@@ -38,6 +38,120 @@ type ProductHome struct {
 	ImagePath string  `json:"image_path"`
 }
 
+// @Summary Obter produtos por nome da categoria com paginação
+// @Description Obtém todos os produtos de uma categoria específica pelo nome da categoria com paginação
+// @Tags Products
+// @Param category_name path string true "Nome da Categoria"
+// @Param page query int false "Número da página" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Success 200 {array} Product
+// @Failure 500 {object} map[string]string "Erro ao buscar produtos"
+// @Router /products/category/{category_name} [get]
+func GetProductsByCategoryName(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		categoryName := c.Params("category_name")
+		page := c.QueryInt("page", 1)
+		limit := c.QueryInt("limit", 10)
+		offset := (page - 1) * limit
+
+		productsQuery := `
+            SELECT 
+                p.id, 
+                p.sku, 
+                p.name, 
+                p.price, 
+                p.quantity, 
+                cp.name AS category_name 
+            FROM products p
+            INNER JOIN categories_products cp 
+                ON p.categories_products_id = cp.id
+            WHERE cp.name = ?
+            LIMIT ? OFFSET ?
+        `
+
+		rows, err := db.Query(productsQuery, categoryName, limit, offset)
+		if err != nil {
+			log.Println("Erro ao buscar produtos:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar produtos"})
+		}
+		defer rows.Close()
+
+		var products []Product
+		for rows.Next() {
+			var product Product
+			if err := rows.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+				log.Println("Erro ao escanear produto:", err)
+				return c.Status(500).JSON(fiber.Map{"error": "Erro ao ler produto"})
+			}
+			products = append(products, product)
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Println("Erro com as linhas:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao processar produtos"})
+		}
+
+		return c.Status(200).JSON(products)
+	}
+}
+
+// @Summary Obter produtos por ID da categoria com paginação
+// @Description Obtém todos os produtos de uma categoria específica pelo ID da categoria com paginação
+// @Tags Products
+// @Param category_id path int true "ID da Categoria"
+// @Param page query int false "Número da página" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Success 200 {array} Product
+// @Failure 500 {object} map[string]string "Erro ao buscar produtos"
+// @Router /products/category/id/{category_id} [get]
+func GetProductsByCategoryID(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		categoryID := c.Params("category_id")
+		page := c.QueryInt("page", 1)
+		limit := c.QueryInt("limit", 10)
+		offset := (page - 1) * limit
+
+		productsQuery := `
+            SELECT 
+                p.id, 
+                p.sku, 
+                p.name, 
+                p.price, 
+                p.quantity, 
+                cp.name AS category_name 
+            FROM products p
+            INNER JOIN categories_products cp 
+                ON p.categories_products_id = cp.id
+            WHERE cp.id = ?
+            LIMIT ? OFFSET ?
+        `
+
+		rows, err := db.Query(productsQuery, categoryID, limit, offset)
+		if err != nil {
+			log.Println("Erro ao buscar produtos:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar produtos"})
+		}
+		defer rows.Close()
+
+		var products []Product
+		for rows.Next() {
+			var product Product
+			if err := rows.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+				log.Println("Erro ao escanear produto:", err)
+				return c.Status(500).JSON(fiber.Map{"error": "Erro ao ler produto"})
+			}
+			products = append(products, product)
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Println("Erro com as linhas:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao processar produtos"})
+		}
+
+		return c.Status(200).JSON(products)
+	}
+}
+
 // @Summary Obter todos os produtos em destaque
 // @Description Obtém todos os produtos com imagens em destaque
 // @Tags Products

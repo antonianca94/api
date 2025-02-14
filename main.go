@@ -26,7 +26,7 @@ var db *sql.DB
 func main() {
 	var err error
 	// Conexão com o banco de dados
-	db, err = sql.Open("mysql", "root:@tcp(localhost:3306)/agrofood")
+	db, err = sql.Open("mysql", "root:8499@tcp(localhost:3306)/agrofood")
 	if err != nil {
 		log.Fatal(err)
 	}

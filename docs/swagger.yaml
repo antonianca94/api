@@ -186,6 +186,78 @@ paths:
       summary: Obter todos os produtos por ID do usuário
       tags:
       - Products
+  /products/category/{category_name}:
+    get:
+      description: Obtém todos os produtos de uma categoria específica pelo nome da
+        categoria com paginação
+      parameters:
+      - description: Nome da Categoria
+        in: path
+        name: category_name
+        required: true
+        type: string
+      - default: 1
+        description: Número da página
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+        "500":
+          description: Erro ao buscar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter produtos por nome da categoria com paginação
+      tags:
+      - Products
+  /products/category/id/{category_id}:
+    get:
+      description: Obtém todos os produtos de uma categoria específica pelo ID da
+        categoria com paginação
+      parameters:
+      - description: ID da Categoria
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      - default: 1
+        description: Número da página
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+        "500":
+          description: Erro ao buscar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter produtos por ID da categoria com paginação
+      tags:
+      - Products
   /products/home:
     get:
       description: Obtém todos os produtos com imagens em destaque

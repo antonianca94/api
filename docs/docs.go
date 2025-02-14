@@ -82,6 +82,110 @@ const docTemplate = `{
                 }
             }
         },
+        "/products/category/id/{category_id}": {
+            "get": {
+                "description": "Obtém todos os produtos de uma categoria específica pelo ID da categoria com paginação",
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Obter produtos por ID da categoria com paginação",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da Categoria",
+                        "name": "category_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Número da página",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar produtos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/category/{category_name}": {
+            "get": {
+                "description": "Obtém todos os produtos de uma categoria específica pelo nome da categoria com paginação",
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Obter produtos por nome da categoria com paginação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da Categoria",
+                        "name": "category_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Número da página",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar produtos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products/home": {
             "get": {
                 "description": "Obtém todos os produtos com imagens em destaque",

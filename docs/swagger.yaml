@@ -81,6 +81,35 @@ definitions:
       username:
         type: string
     type: object
+  controllers.Vendor:
+    properties:
+      address:
+        type: string
+      cep:
+        type: string
+      city:
+        type: string
+      cnpj:
+        type: string
+      country:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      neighborhood:
+        type: string
+      phone:
+        type: string
+      state:
+        type: string
+      users_id:
+        type: integer
+    type: object
 host: localhost:3002
 info:
   contact: {}
@@ -613,4 +642,115 @@ paths:
       summary: Retorna os detalhes de um usuário pelo ID
       tags:
       - Users
+  /vendors:
+    get:
+      description: Obtém todos os vendors
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Vendor'
+            type: array
+        "500":
+          description: Erro ao buscar vendors
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter todos os vendors
+      tags:
+      - Vendors
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo vendor
+      parameters:
+      - description: Vendor para criar
+        in: body
+        name: vendor
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Vendor'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.Vendor'
+        "400":
+          description: Erro ao criar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Criar um novo vendor
+      tags:
+      - Vendors
+  /vendors/{id}:
+    delete:
+      description: Deleta um vendor específico pelo ID
+      parameters:
+      - description: ID do Vendor
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Vendor deletado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Vendor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao deletar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deletar vendor por ID
+      tags:
+      - Vendors
+    get:
+      description: Obtém um vendor específico pelo ID
+      parameters:
+      - description: ID do Vendor
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Vendor'
+        "404":
+          description: Vendor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter vendor por ID
+      tags:
+      - Vendors
 swagger: "2.0"

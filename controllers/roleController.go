@@ -218,6 +218,6 @@ func DeleteRoleByID(db *sql.DB) fiber.Handler {
 		}
 
 		// Resposta com status 204 (sem conteúdo)
-		return c.SendStatus(204)
+		return c.SendStatus(200)
 	}
 }

@@ -26,7 +26,7 @@ var db *sql.DB
 func main() {
 	var err error
 	// Conexão com o banco de dados
-	db, err = sql.Open("mysql", "root:8499@tcp(localhost:3306)/agrofood")
+	db, err = sql.Open("mysql", "root:84990999@tcp(localhost:3306)/agrofood")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,13 +45,13 @@ func main() {
 	// Middleware de logger
 	app.Use(logger.New())
 
-	// Registrar as rotas de usuários
+	// Registrar as rotas
 	routes.RegisterUserRoutes(app, db)
 	routes.RegisterRoleRoutes(app, db)
 	routes.RegisterProductRoutes(app, db)
 	routes.RegisterImageRoutes(app, db)
-	routes.RegisterVendorRoutes(app, db) // Registrar as rotas de vendors
-
+	routes.RegisterVendorRoutes(app, db)
+	routes.RegisterCategoryRoutes(app, db)
 	// Adicionar rota para a documentação Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault) // serve swagger
 

@@ -1,5 +1,16 @@
 basePath: /
 definitions:
+  controllers.Category:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      id_categories_products:
+        type: integer
+      name:
+        type: string
+    type: object
   controllers.Image:
     properties:
       id:
@@ -117,6 +128,162 @@ info:
   title: API do AgroFood
   version: "1.0"
 paths:
+  /categories:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Category'
+            type: array
+      summary: Lista todas as Categorias
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados da nova Categoria
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Categoria criada com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Category'
+        "400":
+          description: Dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar Categoria
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria uma nova Categoria
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da categoria
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete category
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta uma categoria pelo ID
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da categoria
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Category'
+        "404":
+          description: Categoria não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar categoria
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca uma categoria pelo ID
+      tags:
+      - Categories
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da Categoria
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados da Categoria para atualização parcial
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categoria atualizada com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Category'
+        "400":
+          description: ID inválido ou dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Categoria não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar Categoria
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza parcialmente uma Categoria pelo ID
+      tags:
+      - Categories
   /images/{product_id}:
     get:
       description: Obtém as imagens associadas a um produto específico

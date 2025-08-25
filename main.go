@@ -52,6 +52,8 @@ func main() {
 	routes.RegisterImageRoutes(app, db)
 	routes.RegisterVendorRoutes(app, db)
 	routes.RegisterCategoryRoutes(app, db)
+	routes.RegisterCartRoutes(app, db)
+
 	// Adicionar rota para a documentação Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault) // serve swagger
 

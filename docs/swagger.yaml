@@ -1,5 +1,42 @@
 basePath: /
 definitions:
+  controllers.Cart:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      users_id:
+        type: integer
+    type: object
+  controllers.CartItem:
+    properties:
+      cart_id:
+        type: integer
+      id:
+        type: integer
+      products_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  controllers.CartWithItems:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/controllers.CartItem'
+        type: array
+      users_id:
+        type: integer
+    type: object
   controllers.Category:
     properties:
       description:
@@ -128,6 +165,382 @@ info:
   title: API do AgroFood
   version: "1.0"
 paths:
+  /cart:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Cart'
+            type: array
+      summary: Lista todos os Carrinhos de Compras
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do novo Carrinho
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Cart'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Carrinho criado com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Cart'
+        "400":
+          description: Dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo Carrinho de Compras
+      tags:
+      - Cart
+  /cart/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do carrinho
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Carrinho deletado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao deletar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta um carrinho pelo ID
+      tags:
+      - Cart
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do carrinho
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Cart'
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca um carrinho pelo ID
+      tags:
+      - Cart
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do Carrinho
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do Carrinho para atualização parcial
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Cart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Carrinho atualizado com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Cart'
+        "400":
+          description: ID inválido ou dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza parcialmente um Carrinho pelo ID
+      tags:
+      - Cart
+  /cart/{id}/items:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do carrinho
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.CartWithItems'
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca um carrinho com todos os seus itens
+      tags:
+      - Cart
+  /cart/cart-items:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.CartItem'
+            type: array
+      summary: Lista todos os Itens do Carrinho
+      tags:
+      - CartItems
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do novo Item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CartItem'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Item criado com sucesso
+          schema:
+            $ref: '#/definitions/controllers.CartItem'
+        "400":
+          description: Dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar item
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo Item do Carrinho
+      tags:
+      - CartItems
+  /cart/cart-items/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do item
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item deletado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Item não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao deletar item
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta um item do carrinho pelo ID
+      tags:
+      - CartItems
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do item
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.CartItem'
+        "404":
+          description: Item não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar item
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca um item do carrinho pelo ID
+      tags:
+      - CartItems
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do Item
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do Item para atualização parcial
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CartItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item atualizado com sucesso
+          schema:
+            $ref: '#/definitions/controllers.CartItem'
+        "400":
+          description: ID inválido ou dados de entrada inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Item não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar item
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza parcialmente um Item pelo ID
+      tags:
+      - CartItems
+  /cart/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Cart'
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha ao buscar carrinho
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca um carrinho pelo ID do usuário
+      tags:
+      - Cart
   /categories:
     get:
       consumes:
@@ -357,31 +770,6 @@ paths:
       summary: Obter produto por SKU
       tags:
       - Products
-  /products/{user_id}:
-    get:
-      description: Obtém todos os produtos associados a um usuário específico
-      parameters:
-      - description: ID do Usuário
-        in: path
-        name: user_id
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/controllers.Product'
-            type: array
-        "500":
-          description: Erro ao buscar produtos
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obter todos os produtos por ID do usuário
-      tags:
-      - Products
   /products/category/{category_name}:
     get:
       description: Obtém todos os produtos de uma categoria específica pelo nome da
@@ -465,6 +853,31 @@ paths:
               $ref: '#/definitions/controllers.Product'
             type: array
       summary: Obter todos os produtos em destaque
+      tags:
+      - Products
+  /products/user/{user_id}:
+    get:
+      description: Obtém todos os produtos associados a um usuário específico
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Product'
+            type: array
+        "500":
+          description: Erro ao buscar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter todos os produtos por ID do usuário
       tags:
       - Products
   /roles:

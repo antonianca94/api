@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"log"
-
+	"strings"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -170,5 +170,101 @@ func DeleteVendor(db *sql.DB) fiber.Handler {
 		}
 
 		return c.Status(200).JSON(fiber.Map{"message": "Vendor deletado com sucesso"})
+	}
+}
+
+// @Summary Atualizar vendor por ID
+// @Description Atualiza um vendor específico pelo ID (permite atualizações parciais)
+// @Tags Vendors
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do Vendor"
+// @Param vendor body Vendor true "Dados do vendor para atualizar"
+// @Success 200 {object} Vendor
+// @Failure 400 {object} map[string]string "Erro ao analisar requisição"
+// @Failure 404 {object} map[string]string "Vendor não encontrado"
+// @Failure 500 {object} map[string]string "Erro ao atualizar vendor"
+// @Router /vendors/{id} [patch]
+func UpdateVendor(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		vendorID := c.Params("id")
+
+		// Primeiro, verificar se o vendor existe
+		checkQuery := `SELECT id FROM agrofood.vendors WHERE id = ?`
+		var existingID int
+		err := db.QueryRow(checkQuery, vendorID).Scan(&existingID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{"error": "Vendor não encontrado"})
+			}
+			log.Println("Erro ao verificar vendor:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar vendor"})
+		}
+
+		// Parse do body da requisição
+		var updateData map[string]interface{}
+		if err := c.BodyParser(&updateData); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Erro ao analisar o corpo da requisição"})
+		}
+
+		// Construir query dinâmica baseada nos campos fornecidos
+		var setParts []string
+		var args []interface{}
+
+		// Campos permitidos para atualização
+		allowedFields := map[string]string{
+			"name":         "name",
+			"description":  "description",
+			"address":      "address",
+			"neighborhood": "neighborhood",
+			"city":         "city",
+			"state":        "state",
+			"country":      "country",
+			"phone":        "phone",
+			"email":        "email",
+			"users_id":     "users_id",
+			"cep":          "cep",
+			"cnpj":         "cnpj",
+		}
+
+		for field, value := range updateData {
+			if dbField, exists := allowedFields[field]; exists {
+				setParts = append(setParts, dbField+" = ?")
+				args = append(args, value)
+			}
+		}
+
+		// Verificar se há campos para atualizar
+		if len(setParts) == 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "Nenhum campo válido fornecido para atualização"})
+		}
+
+		// Adicionar o ID no final dos argumentos
+		args = append(args, vendorID)
+
+		// Construir e executar a query de update
+		updateQuery := `UPDATE agrofood.vendors SET ` + strings.Join(setParts, ", ") + ` WHERE id = ?`
+
+		_, err = db.Exec(updateQuery, args...)
+		if err != nil {
+			log.Println("Erro ao atualizar vendor:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao atualizar vendor"})
+		}
+
+		// Buscar e retornar o vendor atualizado
+		vendorQuery := `
+			SELECT id, name, description, address, neighborhood, city, state, country, phone, email, users_id, cep, cnpj
+			FROM agrofood.vendors
+			WHERE id = ?
+		`
+
+		var vendor Vendor
+		err = db.QueryRow(vendorQuery, vendorID).Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Address, &vendor.Neighborhood, &vendor.City, &vendor.State, &vendor.Country, &vendor.Phone, &vendor.Email, &vendor.UsersId, &vendor.Cep, &vendor.Cnpj)
+		if err != nil {
+			log.Println("Erro ao buscar vendor atualizado:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar vendor atualizado"})
+		}
+
+		return c.Status(200).JSON(vendor)
 	}
 }

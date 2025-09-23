@@ -1333,4 +1333,48 @@ paths:
       summary: Obter vendor por ID
       tags:
       - Vendors
+    patch:
+      consumes:
+      - application/json
+      description: Atualiza um vendor específico pelo ID (permite atualizações parciais)
+      parameters:
+      - description: ID do Vendor
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do vendor para atualizar
+        in: body
+        name: vendor
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Vendor'
+        "400":
+          description: Erro ao analisar requisição
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Vendor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualizar vendor por ID
+      tags:
+      - Vendors
 swagger: "2.0"

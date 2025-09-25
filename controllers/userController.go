@@ -33,6 +33,50 @@ type UserDetails struct {
 	RoleName string `json:"role_name"`
 }
 
+// Struct para resultado de validação otimizada
+type ValidationResult struct {
+	CpfExists      bool `json:"cpf_exists"`
+	UsernameExists bool `json:"username_exists"`
+}
+
+// validateUserData - Função otimizada que usa uma única query
+func validateUserData(db *sql.DB, cpf, username string, excludeID int) (*ValidationResult, error) {
+	var query string
+	var params []interface{}
+	
+	if excludeID > 0 {
+		// Para updates - exclui o próprio usuário
+		query = `
+			SELECT 
+				COUNT(CASE WHEN cpf = ? THEN 1 END) as cpf_count,
+				COUNT(CASE WHEN username = ? THEN 1 END) as username_count
+			FROM users 
+			WHERE (cpf = ? OR username = ?) AND id != ?`
+		params = []interface{}{cpf, username, cpf, username, excludeID}
+	} else {
+		// Para inserts
+		query = `
+			SELECT 
+				COUNT(CASE WHEN cpf = ? THEN 1 END) as cpf_count,
+				COUNT(CASE WHEN username = ? THEN 1 END) as username_count
+			FROM users 
+			WHERE cpf = ? OR username = ?`
+		params = []interface{}{cpf, username, cpf, username}
+	}
+
+	var cpfCount, usernameCount int
+	err := db.QueryRow(query, params...).Scan(&cpfCount, &usernameCount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ValidationResult{
+		CpfExists:      cpfCount > 0,
+		UsernameExists: usernameCount > 0,
+	}, nil
+}
+
+
 // GetUsers retorna a lista de usuários
 // @Summary Lista todos os usuários
 // @Tags Users
@@ -261,6 +305,24 @@ func CreateUser(db *sql.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": "Campos obrigatórios ausentes"})
 		}
 
+		// Validação otimizada em uma única consulta
+		validation, err := validateUserData(db, user.Cpf, user.Username, 0)
+		if err != nil {
+			log.Printf("Erro ao validar dados: %v", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Falha na validação"})
+		}
+
+		// Verificar conflitos
+		if validation.CpfExists && validation.UsernameExists {
+			return c.Status(400).JSON(fiber.Map{"error": "CPF e username já estão cadastrados"})
+		}
+		if validation.CpfExists {
+			return c.Status(400).JSON(fiber.Map{"error": "CPF já está cadastrado"})
+		}
+		if validation.UsernameExists {
+			return c.Status(400).JSON(fiber.Map{"error": "Username já está cadastrado"})
+		}
+		
 		// Crie a query de inserção
 		query := `INSERT INTO users (status, username, password, name, surname, cpf, roles_id) 
 		          VALUES (?, ?, ?, ?, ?, ?, ?)`

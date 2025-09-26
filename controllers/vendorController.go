@@ -24,6 +24,49 @@ type Vendor struct {
 	Cnpj         string `json:"cnpj"`
 }
 
+type VendorValidationResult struct {
+	CnpjExists  bool `json:"cnpj_exists"`
+	EmailExists bool `json:"email_exists"`
+}
+
+// validateVendorData - Função otimizada que usa uma única query para validar CNPJ e email
+func validateVendorData(db *sql.DB, cnpj, email string, excludeID int) (*VendorValidationResult, error) {
+	var query string
+	var params []interface{}
+	
+	if excludeID > 0 {
+		// Para updates - exclui o próprio vendor
+		query = `
+			SELECT 
+				COUNT(CASE WHEN cnpj = ? THEN 1 END) as cnpj_count,
+				COUNT(CASE WHEN email = ? THEN 1 END) as email_count
+			FROM agrofood.vendors 
+			WHERE (cnpj = ? OR email = ?) AND id != ?`
+		params = []interface{}{cnpj, email, cnpj, email, excludeID}
+	} else {
+		// Para inserts
+		query = `
+			SELECT 
+				COUNT(CASE WHEN cnpj = ? THEN 1 END) as cnpj_count,
+				COUNT(CASE WHEN email = ? THEN 1 END) as email_count
+			FROM agrofood.vendors 
+			WHERE cnpj = ? OR email = ?`
+		params = []interface{}{cnpj, email, cnpj, email}
+	}
+
+	var cnpjCount, emailCount int
+	err := db.QueryRow(query, params...).Scan(&cnpjCount, &emailCount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VendorValidationResult{
+		CnpjExists:  cnpjCount > 0,
+		EmailExists: emailCount > 0,
+	}, nil
+}
+
+
 // @Summary Obter todos os vendors
 // @Description Obtém todos os vendors
 // @Tags Vendors
@@ -111,6 +154,24 @@ func CreateVendor(db *sql.DB) fiber.Handler {
 
 		if err := c.BodyParser(&vendor); err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "Erro ao analisar o corpo da requisição"})
+		}
+
+		// Validação otimizada em uma única consulta
+		validation, err := validateVendorData(db, vendor.Cnpj, vendor.Email, 0)
+		if err != nil {
+			log.Printf("Erro ao validar dados do vendor: %v", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Falha na validação"})
+		}
+
+		// Verificar conflitos
+		if validation.CnpjExists && validation.EmailExists {
+			return c.Status(400).JSON(fiber.Map{"error": "CNPJ e email já estão cadastrados"})
+		}
+		if validation.CnpjExists {
+			return c.Status(400).JSON(fiber.Map{"error": "CNPJ já está cadastrado"})
+		}
+		if validation.EmailExists {
+			return c.Status(400).JSON(fiber.Map{"error": "Email já está cadastrado"})
 		}
 
 		insertQuery := `

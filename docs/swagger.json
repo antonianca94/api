@@ -821,6 +821,58 @@
                 }
             }
         },
+        "/images": {
+            "post": {
+                "description": "Cria uma nova imagem associada a um produto",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Criar imagem do produto",
+                "parameters": [
+                    {
+                        "description": "Dados da imagem",
+                        "name": "image",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Image"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Imagem criada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Image"
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar imagem",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/images/{product_id}": {
             "get": {
                 "description": "Obtém as imagens associadas a um produto específico",
@@ -882,6 +934,57 @@
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/controllers.Product"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria um novo produto no banco de dados",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Criar um novo produto",
+                "parameters": [
+                    {
+                        "description": "Dados do produto",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ProductCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produto criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -1962,6 +2065,29 @@
                 },
                 "quantity": {
                     "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "users_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.ProductCreate": {
+            "type": "object",
+            "properties": {
+                "categories_product_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
                 },
                 "sku": {
                     "type": "string"

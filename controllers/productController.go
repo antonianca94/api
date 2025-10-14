@@ -38,6 +38,24 @@ type ProductHome struct {
 	ImagePath string  `json:"image_path"`
 }
 
+type ProductCreate struct {
+	SKU        string  `json:"sku"`
+	Name       string  `json:"name"`
+	Price      string  `json:"price"`
+	UsersId    int     `json:"users_id"`
+	Quantity   string  `json:"quantity"`
+	CategoryId int     `json:"categories_product_id"`
+}
+
+type ProductCreateRaw struct {
+	SKU        string      `json:"sku"`
+	Name       string      `json:"name"`
+	Price      string 	   `json:"price"`
+	UsersId    int         `json:"users_id"`
+	Quantity   string       `json:"quantity"`
+	CategoryId int         `json:"categories_product_id"`
+}
+
 // @Summary Obter produtos por nome da categoria com paginação
 // @Description Obtém todos os produtos de uma categoria específica pelo nome da categoria com paginação
 // @Tags Products
@@ -304,5 +322,105 @@ func GetProductBySKU(db *sql.DB) fiber.Handler {
 		}
 
 		return c.Status(200).JSON(product)
+	}
+}
+
+// @Summary Criar um novo produto
+// @Description Cria um novo produto no banco de dados
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param product body ProductCreate true "Dados do produto"
+// @Success 200 {object} map[string]interface{} "Produto criado com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro ao criar produto"
+// @Router /products [post]
+func CreateProduct(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var productRaw ProductCreateRaw
+		
+		// Parse do body da requisição
+		if err := c.BodyParser(&productRaw); err != nil {
+			log.Println("Erro ao fazer parse do body:", err)
+			return c.Status(400).JSON(fiber.Map{"error": "Dados inválidos"})
+		}
+
+	
+		// Monta o produto final
+		product := ProductCreate{
+			SKU:        productRaw.SKU,
+			Name:       productRaw.Name,
+			Price:      productRaw.Price,
+			UsersId:    productRaw.UsersId,
+			Quantity:   productRaw.Quantity,
+			CategoryId: productRaw.CategoryId,
+		}
+
+		// Validações básicas
+		if product.SKU == "" || product.Name == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "SKU e Nome são obrigatórios"})
+		}
+
+		if product.Price == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Preço não pode ser vazio"})
+		}
+
+		if product.Quantity == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Quantidade não pode ser negativa"})
+		}
+
+		// Verifica se o SKU já existe
+		var exists int
+		checkQuery := "SELECT COUNT(*) FROM products WHERE sku = ?"
+		err := db.QueryRow(checkQuery, product.SKU).Scan(&exists)
+		if err != nil {
+			log.Println("Erro ao verificar SKU:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar produto"})
+		}
+
+		if exists > 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "Produto com este SKU já existe"})
+		}
+
+		// Insere o produto no banco de dados
+		insertQuery := `
+			INSERT INTO products (sku, name, price, users_id, quantity, categories_products_id)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`
+
+		result, err := db.Exec(insertQuery, 
+			product.SKU, 
+			product.Name, 
+			product.Price, 
+			product.UsersId, 
+			product.Quantity, 
+			product.CategoryId,
+		)
+
+		if err != nil {
+			log.Println("Erro ao inserir produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao criar produto"})
+		}
+
+		// Obtém o ID do produto inserido
+		productID, err := result.LastInsertId()
+		if err != nil {
+			log.Println("Erro ao obter ID do produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao obter ID do produto"})
+		}
+
+		// Retorna o produto criado com sucesso
+		return c.Status(200).JSON(fiber.Map{
+			"message": "Produto criado com sucesso",
+			"product": fiber.Map{
+				"id":                      productID,
+				"sku":                     product.SKU,
+				"name":                    product.Name,
+				"price":                   product.Price,
+				"users_id":                product.UsersId,
+				"quantity":                product.Quantity,
+				"categories_product_id":   product.CategoryId,
+			},
+		})
 	}
 }

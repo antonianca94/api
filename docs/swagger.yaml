@@ -78,6 +78,21 @@ definitions:
       users_id:
         type: integer
     type: object
+  controllers.ProductCreate:
+    properties:
+      categories_product_id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: string
+      quantity:
+        type: string
+      sku:
+        type: string
+      users_id:
+        type: integer
+    type: object
   controllers.Role:
     properties:
       description:
@@ -697,6 +712,40 @@ paths:
       summary: Atualiza parcialmente uma Categoria pelo ID
       tags:
       - Categories
+  /images:
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova imagem associada a um produto
+      parameters:
+      - description: Dados da imagem
+        in: body
+        name: image
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Image'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Imagem criada com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Image'
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar imagem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Criar imagem do produto
+      tags:
+      - Images
   /images/{product_id}:
     get:
       description: Obtém as imagens associadas a um produto específico
@@ -739,6 +788,40 @@ paths:
               $ref: '#/definitions/controllers.Product'
             type: array
       summary: Obter todos os produtos
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo produto no banco de dados
+      parameters:
+      - description: Dados do produto
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ProductCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Produto criado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Criar um novo produto
       tags:
       - Products
   /products/{sku}:

@@ -56,3 +56,52 @@ func GetImageOfProduct(db *sql.DB) fiber.Handler {
 		return c.Status(200).JSON(images)
 	}
 }
+
+
+// @Summary Criar imagem do produto
+// @Description Cria uma nova imagem associada a um produto
+// @Tags Images
+// @Accept json
+// @Produce json
+// @Param image body Image true "Dados da imagem"
+// @Success 201 {object} Image "Imagem criada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro ao criar imagem"
+// @Router /images [post]
+func CreateImage(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var image Image
+
+		// Parse do body da requisição
+		if err := c.BodyParser(&image); err != nil {
+			log.Println("Erro ao fazer parse do body:", err)
+			return c.Status(400).JSON(fiber.Map{"error": "Dados inválidos"})
+		}
+
+		// Validação básica
+		if image.Name == "" || image.Path == "" || image.Type == "" || image.ProductID == 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "Todos os campos são obrigatórios"})
+		}
+
+		// Query para inserir a imagem
+		query := `INSERT INTO images (name, path, type, products_id) VALUES (?, ?, ?, ?)`
+
+		// Executa a inserção
+		result, err := db.Exec(query, image.Name, image.Path, image.Type, image.ProductID)
+		if err != nil {
+			log.Println("Erro ao criar imagem:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao criar imagem"})
+		}
+
+		// Obtém o ID da imagem criada
+		id, err := result.LastInsertId()
+		if err != nil {
+			log.Println("Erro ao obter ID da imagem:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao obter ID da imagem"})
+		}
+
+		image.ID = int(id)
+
+		return c.Status(201).JSON(image)
+	}
+}

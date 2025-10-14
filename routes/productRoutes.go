@@ -17,4 +17,6 @@ func RegisterProductRoutes(app *fiber.App, db *sql.DB) {
 	productGroup.Get("/category/:category_name", controllers.GetProductsByCategoryName(db))
 	productGroup.Get("/category/id/:category_id", controllers.GetProductsByCategoryID(db)) // Nova rota
 
+	productGroup.Post("/", controllers.CreateProduct(db))
+
 }

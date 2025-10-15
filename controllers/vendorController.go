@@ -329,3 +329,35 @@ func UpdateVendor(db *sql.DB) fiber.Handler {
 		return c.Status(200).JSON(vendor)
 	}
 }
+
+// @Summary Obter vendor por User ID
+// @Description Obtém um vendor específico pelo users_id
+// @Tags Vendors
+// @Param users_id path int true "ID do Usuário"
+// @Success 200 {object} Vendor
+// @Failure 404 {object} map[string]string "Vendor não encontrado"
+// @Failure 500 {object} map[string]string "Erro ao buscar vendor"
+// @Router /vendors/user/{users_id} [get]
+func GetVendorByUserID(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID := c.Params("users_id")
+
+		vendorQuery := `
+            SELECT id, name, description, address, neighborhood, city, state, country, phone, email, users_id, cep, cnpj
+            FROM agrofood.vendors
+            WHERE users_id = ?
+        `
+
+		var vendor Vendor
+		err := db.QueryRow(vendorQuery, userID).Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Address, &vendor.Neighborhood, &vendor.City, &vendor.State, &vendor.Country, &vendor.Phone, &vendor.Email, &vendor.UsersId, &vendor.Cep, &vendor.Cnpj)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{"error": "Vendor não encontrado para este usuário"})
+			}
+			log.Println("Erro ao buscar vendor por users_id:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar vendor"})
+		}
+
+		return c.Status(200).JSON(vendor)
+	}
+}

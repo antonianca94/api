@@ -1460,4 +1460,33 @@ paths:
       summary: Atualizar vendor por ID
       tags:
       - Vendors
+  /vendors/user/{users_id}:
+    get:
+      description: Obtém um vendor específico pelo users_id
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: users_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Vendor'
+        "404":
+          description: Vendor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar vendor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter vendor por User ID
+      tags:
+      - Vendors
 swagger: "2.0"

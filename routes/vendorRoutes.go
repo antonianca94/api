@@ -14,4 +14,6 @@ func RegisterVendorRoutes(app *fiber.App, db *sql.DB) {
 	vendorGroup.Post("/", controllers.CreateVendor(db))      
 	vendorGroup.Delete("/:id", controllers.DeleteVendor(db)) 
 	vendorGroup.Patch("/:id", controllers.UpdateVendor(db))     
+	vendorGroup.Get("/user/:users_id", controllers.GetVendorByUserID(db))
+
 }

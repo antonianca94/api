@@ -1797,6 +1797,50 @@
                 }
             }
         },
+        "/vendors/user/{users_id}": {
+            "get": {
+                "description": "Obtém um vendor específico pelo users_id",
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Obter vendor por User ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "users_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Vendor"
+                        }
+                    },
+                    "404": {
+                        "description": "Vendor não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar vendor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/vendors/{id}": {
             "get": {
                 "description": "Obtém um vendor específico pelo ID",

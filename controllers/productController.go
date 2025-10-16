@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -56,6 +57,13 @@ type ProductCreateRaw struct {
 	CategoryId int         `json:"categories_product_id"`
 }
 
+// ProductUpdate representa os dados para atualização parcial
+type ProductUpdate struct {
+	Name       *string `json:"name,omitempty"`
+	Price      *string `json:"price,omitempty"`
+	Quantity   *string `json:"quantity,omitempty"`
+	CategoryId *int    `json:"categories_product_id,omitempty"`
+}
 
 // @Summary Obter produto por ID
 // @Description Obtém um produto com base no ID
@@ -510,6 +518,148 @@ func DeleteProductByID(db *sql.DB) fiber.Handler {
 		return c.Status(200).JSON(fiber.Map{
 			"message": "Produto excluído com sucesso",
 			"id":      id,
+		})
+	}
+}
+
+// @Summary Atualizar produto por ID (parcial)
+// @Description Atualiza parcialmente os dados de um produto existente. Envie apenas os campos que deseja atualizar.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do produto"
+// @Param product body ProductUpdate true "Dados do produto para atualização (campos opcionais)"
+// @Success 200 {object} map[string]interface{} "Produto atualizado com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Produto não encontrado"
+// @Failure 500 {object} map[string]string "Erro ao atualizar produto"
+// @Router /products/id/{id} [patch]
+func UpdateProductByID(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		var productUpdate ProductUpdate
+		
+		// Parse do body da requisição
+		if err := c.BodyParser(&productUpdate); err != nil {
+			log.Println("Erro ao fazer parse do body:", err)
+			return c.Status(400).JSON(fiber.Map{"error": "Dados inválidos"})
+		}
+
+		// Verifica se pelo menos um campo foi enviado
+		if productUpdate.Name == nil && productUpdate.Price == nil && 
+		   productUpdate.Quantity == nil && productUpdate.CategoryId == nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Nenhum campo para atualizar foi fornecido"})
+		}
+
+		// Validações dos campos enviados
+		if productUpdate.Name != nil && *productUpdate.Name == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Nome não pode ser vazio"})
+		}
+
+		if productUpdate.Price != nil && *productUpdate.Price == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Preço não pode ser vazio"})
+		}
+
+		if productUpdate.Quantity != nil && *productUpdate.Quantity == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Quantidade não pode ser vazia"})
+		}
+
+		// Verifica se o produto existe
+		var exists int
+		checkProductQuery := "SELECT COUNT(*) FROM products WHERE id = ?"
+		err := db.QueryRow(checkProductQuery, id).Scan(&exists)
+		if err != nil {
+			log.Println("Erro ao verificar produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar produto"})
+		}
+
+		if exists == 0 {
+			return c.Status(404).JSON(fiber.Map{"message": "Produto não encontrado"})
+		}
+
+		// Verifica se a categoria existe (se foi enviada)
+		if productUpdate.CategoryId != nil {
+			var categoryExists int
+			checkCategoryQuery := "SELECT COUNT(*) FROM categories_products WHERE id = ?"
+			err = db.QueryRow(checkCategoryQuery, *productUpdate.CategoryId).Scan(&categoryExists)
+			if err != nil {
+				log.Println("Erro ao verificar categoria:", err)
+				return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar categoria"})
+			}
+
+			if categoryExists == 0 {
+				return c.Status(400).JSON(fiber.Map{"error": "Categoria inválida"})
+			}
+		}
+
+		// Constrói a query de atualização dinâmica
+		var updates []string
+		var args []interface{}
+
+		if productUpdate.Name != nil {
+			updates = append(updates, "name = ?")
+			args = append(args, *productUpdate.Name)
+		}
+
+		if productUpdate.Price != nil {
+			updates = append(updates, "price = ?")
+			args = append(args, *productUpdate.Price)
+		}
+
+		if productUpdate.Quantity != nil {
+			updates = append(updates, "quantity = ?")
+			args = append(args, *productUpdate.Quantity)
+		}
+
+		if productUpdate.CategoryId != nil {
+			updates = append(updates, "categories_products_id = ?")
+			args = append(args, *productUpdate.CategoryId)
+		}
+
+		// Adiciona o ID ao final dos argumentos
+		args = append(args, id)
+
+		// Monta a query final
+		updateQuery := "UPDATE products SET " + strings.Join(updates, ", ") + " WHERE id = ?"
+
+		// Executa a atualização
+		_, err = db.Exec(updateQuery, args...)
+		if err != nil {
+			log.Println("Erro ao atualizar produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao atualizar produto"})
+		}
+
+		// Busca o produto atualizado para retornar
+		productQuery := `
+			SELECT 
+				p.id, 
+				p.sku, 
+				p.name, 
+				p.price, 
+				p.quantity, 
+				cp.name AS category_name 
+			FROM products p
+			INNER JOIN categories_products cp 
+				ON p.categories_products_id = cp.id
+			WHERE p.id = ?
+		`
+
+		row := db.QueryRow(productQuery, id)
+		var product Product
+		if err := row.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+			log.Println("Erro ao buscar produto atualizado:", err)
+			// Retorna sucesso mesmo sem buscar o produto atualizado
+			return c.Status(200).JSON(fiber.Map{
+				"message": "Produto atualizado com sucesso",
+				"id":      id,
+			})
+		}
+
+		// Retorna o produto atualizado com sucesso
+		return c.Status(200).JSON(fiber.Map{
+			"message": "Produto atualizado com sucesso",
+			"product": product,
 		})
 	}
 }

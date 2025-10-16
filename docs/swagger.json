@@ -1365,6 +1365,73 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Atualiza parcialmente os dados de um produto existente. Envie apenas os campos que deseja atualizar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Atualizar produto por ID (parcial)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados do produto para atualização (campos opcionais)",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ProductUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produto atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Produto não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao atualizar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/products/user/{user_id}": {
@@ -2390,6 +2457,23 @@
                 },
                 "users_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "controllers.ProductUpdate": {
+            "type": "object",
+            "properties": {
+                "categories_product_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
                 }
             }
         },

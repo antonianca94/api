@@ -93,6 +93,17 @@ definitions:
       users_id:
         type: integer
     type: object
+  controllers.ProductUpdate:
+    properties:
+      categories_product_id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: string
+      quantity:
+        type: string
+    type: object
   controllers.Role:
     properties:
       description:
@@ -1103,6 +1114,52 @@ paths:
               type: string
             type: object
       summary: Obter produto por ID
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: Atualiza parcialmente os dados de um produto existente. Envie apenas
+        os campos que deseja atualizar.
+      parameters:
+      - description: ID do produto
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do produto para atualização (campos opcionais)
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ProductUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Produto atualizado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Produto não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualizar produto por ID (parcial)
       tags:
       - Products
   /products/user/{user_id}:

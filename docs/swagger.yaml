@@ -938,6 +938,35 @@ paths:
       summary: Obter todos os produtos em destaque
       tags:
       - Products
+  /products/id/{id}:
+    get:
+      description: Obtém um produto com base no ID
+      parameters:
+      - description: ID do produto
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Product'
+        "404":
+          description: Produto não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter produto por ID
+      tags:
+      - Products
   /products/user/{user_id}:
     get:
       description: Obtém todos os produtos associados a um usuário específico

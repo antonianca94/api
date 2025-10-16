@@ -1115,6 +1115,50 @@
                 }
             }
         },
+        "/products/id/{id}": {
+            "get": {
+                "description": "Obtém um produto com base no ID",
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Obter produto por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Product"
+                        }
+                    },
+                    "404": {
+                        "description": "Produto não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products/user/{user_id}": {
             "get": {
                 "description": "Obtém todos os produtos associados a um usuário específico",

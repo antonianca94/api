@@ -56,6 +56,47 @@ type ProductCreateRaw struct {
 	CategoryId int         `json:"categories_product_id"`
 }
 
+
+// @Summary Obter produto por ID
+// @Description Obtém um produto com base no ID
+// @Tags Products
+// @Param id path int true "ID do produto"
+// @Success 200 {object} Product
+// @Failure 404 {object} map[string]string "Produto não encontrado"
+// @Failure 500 {object} map[string]string "Erro ao buscar produto"
+// @Router /products/id/{id} [get]
+func GetProductByID(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		productQuery := `
+			SELECT 
+				p.id, 
+				p.sku, 
+				p.name, 
+				p.price, 
+				p.quantity, 
+				cp.name AS category_name 
+			FROM products p
+			INNER JOIN categories_products cp 
+				ON p.categories_products_id = cp.id
+			WHERE p.id = ?
+		`
+
+		row := db.QueryRow(productQuery, id)
+		var product Product
+		if err := row.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{"message": "Produto não encontrado"})
+			}
+			log.Println("Erro ao buscar produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar produto"})
+		}
+
+		return c.Status(200).JSON(product)
+	}
+}
+
 // @Summary Obter produtos por nome da categoria com paginação
 // @Description Obtém todos os produtos de uma categoria específica pelo nome da categoria com paginação
 // @Tags Products

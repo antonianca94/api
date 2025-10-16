@@ -465,3 +465,43 @@ func CreateProduct(db *sql.DB) fiber.Handler {
 		})
 	}
 }
+
+// @Summary Excluir produto por ID
+// @Description Exclui um produto com base no ID
+// @Tags Products
+// @Param id path int true "ID do produto"
+// @Success 200 {object} map[string]string "Produto excluído com sucesso"
+// @Failure 404 {object} map[string]string "Produto não encontrado"
+// @Failure 500 {object} map[string]string "Erro ao excluir produto"
+// @Router /products/id/{id} [delete]
+func DeleteProductByID(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		// Verifica se o produto existe
+		var exists int
+		checkQuery := "SELECT COUNT(*) FROM products WHERE id = ?"
+		err := db.QueryRow(checkQuery, id).Scan(&exists)
+		if err != nil {
+			log.Println("Erro ao verificar produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar produto"})
+		}
+
+		if exists == 0 {
+			return c.Status(404).JSON(fiber.Map{"message": "Produto não encontrado"})
+		}
+
+		// Exclui o produto
+		deleteQuery := "DELETE FROM products WHERE id = ?"
+		_, err = db.Exec(deleteQuery, id)
+		if err != nil {
+			log.Println("Erro ao excluir produto:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao excluir produto"})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"message": "Produto excluído com sucesso",
+			"id":      id,
+		})
+	}
+}

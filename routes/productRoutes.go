@@ -19,5 +19,5 @@ func RegisterProductRoutes(app *fiber.App, db *sql.DB) {
 
 	productGroup.Post("/", controllers.CreateProduct(db))
 	productGroup.Get("/id/:id", controllers.GetProductByID(db))
-
+	productGroup.Delete("/id/:id", controllers.DeleteProductByID(db))
 }

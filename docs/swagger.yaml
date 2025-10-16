@@ -1047,6 +1047,36 @@ paths:
       tags:
       - Products
   /products/id/{id}:
+    delete:
+      description: Exclui um produto com base no ID
+      parameters:
+      - description: ID do produto
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Produto excluído com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Produto não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao excluir produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Excluir produto por ID
+      tags:
+      - Products
     get:
       description: Obtém um produto com base no ID
       parameters:

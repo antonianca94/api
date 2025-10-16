@@ -16,4 +16,7 @@ func RegisterImageRoutes(app *fiber.App, db *sql.DB) {
 	imageGroup.Post("/", controllers.CreateImage(db))
 	imageGroup.Get("/:product_id/type", controllers.GetImagesByProductAndType(db))
 
+	imageGroup.Get("/name/:name", controllers.GetImageByName(db))
+	imageGroup.Delete("/:id", controllers.DeleteImage(db))
+
 }

@@ -746,6 +746,43 @@ paths:
       summary: Criar imagem do produto
       tags:
       - Images
+  /images/{id}:
+    delete:
+      description: Exclui uma imagem pelo ID
+      parameters:
+      - description: ID da imagem
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Imagem excluída com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Imagem não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao excluir imagem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Excluir imagem
+      tags:
+      - Images
   /images/{product_id}:
     get:
       description: Obtém as imagens associadas a um produto específico
@@ -817,6 +854,35 @@ paths:
               type: string
             type: object
       summary: Obter imagens do produto por tipo
+      tags:
+      - Images
+  /images/name/{name}:
+    get:
+      description: Obtém uma imagem específica pelo nome
+      parameters:
+      - description: Nome da imagem
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Image'
+        "404":
+          description: Imagem não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar imagem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter imagem por nome
       tags:
       - Images
   /products:

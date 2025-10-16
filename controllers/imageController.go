@@ -16,6 +16,42 @@ type Image struct {
 	ProductID int    `json:"products_id,omitempty"`
 }
 
+// @Summary Obter imagem por nome
+// @Description Obtém uma imagem específica pelo nome
+// @Tags Images
+// @Param name path string true "Nome da imagem"
+// @Success 200 {object} Image
+// @Failure 404 {object} map[string]string "Imagem não encontrada"
+// @Failure 500 {object} map[string]string "Erro ao buscar imagem"
+// @Router /images/name/{name} [get]
+func GetImageByName(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		imageName := c.Params("name")
+
+		// Consulta para buscar a imagem pelo nome
+		query := `SELECT id, name, path, type, products_id FROM images WHERE name = ?`
+
+		var image Image
+		err := db.QueryRow(query, imageName).Scan(
+			&image.ID,
+			&image.Name,
+			&image.Path,
+			&image.Type,
+			&image.ProductID,
+		)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{"message": "Imagem não encontrada"})
+			}
+			log.Println("Erro ao buscar imagem:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar imagem"})
+		}
+
+		return c.Status(200).JSON(image)
+	}
+}
+
 // @Summary Obter imagens do produto por tipo
 // @Description Obtém as imagens de um produto específico filtradas por tipo
 // @Tags Images
@@ -152,5 +188,50 @@ func CreateImage(db *sql.DB) fiber.Handler {
 		image.ID = int(id)
 
 		return c.Status(201).JSON(image)
+	}
+}
+
+// @Summary Excluir imagem
+// @Description Exclui uma imagem pelo ID
+// @Tags Images
+// @Param id path int true "ID da imagem"
+// @Success 200 {object} map[string]string "Imagem excluída com sucesso"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Imagem não encontrada"
+// @Failure 500 {object} map[string]string "Erro ao excluir imagem"
+// @Router /images/{id} [delete]
+func DeleteImage(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		imageID := c.Params("id")
+
+		// Validação do ID
+		if imageID == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "ID da imagem é obrigatório"})
+		}
+
+		// Verifica se a imagem existe antes de excluir
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM images WHERE id = ?)`
+		err := db.QueryRow(checkQuery, imageID).Scan(&exists)
+		if err != nil {
+			log.Println("Erro ao verificar existência da imagem:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao verificar imagem"})
+		}
+
+		if !exists {
+			return c.Status(404).JSON(fiber.Map{"message": "Imagem não encontrada"})
+		}
+
+		// Query para excluir a imagem
+		query := `DELETE FROM images WHERE id = ?`
+
+		// Executa a exclusão
+		_, err = db.Exec(query, imageID)
+		if err != nil {
+			log.Println("Erro ao excluir imagem:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao excluir imagem"})
+		}
+
+		return c.Status(200).JSON(fiber.Map{"message": "Imagem excluída com sucesso"})
 	}
 }

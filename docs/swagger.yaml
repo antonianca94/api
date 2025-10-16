@@ -777,6 +777,48 @@ paths:
       summary: Obter imagem do produto
       tags:
       - Images
+  /images/{product_id}/type:
+    get:
+      description: Obtém as imagens de um produto específico filtradas por tipo
+      parameters:
+      - description: ID do Produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      - description: Tipo da imagem (featured_image ou gallery_images[])
+        in: query
+        name: type
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Image'
+            type: array
+        "400":
+          description: Tipo de imagem inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Imagens não encontradas
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar imagens
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter imagens do produto por tipo
+      tags:
+      - Images
   /products:
     get:
       description: Obtém todos os produtos

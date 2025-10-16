@@ -926,6 +926,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/images/{product_id}/type": {
+            "get": {
+                "description": "Obtém as imagens de um produto específico filtradas por tipo",
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Obter imagens do produto por tipo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tipo da imagem (featured_image ou gallery_images[])",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.Image"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Tipo de imagem inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Imagens não encontradas",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar imagens",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "description": "Obtém todos os produtos",

@@ -16,6 +16,55 @@ type Image struct {
 	ProductID int    `json:"products_id,omitempty"`
 }
 
+// @Summary Obter imagens do produto por tipo
+// @Description Obtém as imagens de um produto específico filtradas por tipo
+// @Tags Images
+// @Param product_id path int true "ID do Produto"
+// @Param type query string true "Tipo da imagem (featured_image ou gallery_images[])"
+// @Success 200 {array} Image
+// @Failure 400 {object} map[string]string "Tipo de imagem inválido"
+// @Failure 404 {object} map[string]string "Imagens não encontradas"
+// @Failure 500 {object} map[string]string "Erro ao buscar imagens"
+// @Router /images/{product_id}/type [get]
+func GetImagesByProductAndType(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		productID := c.Params("product_id")
+		imageType := c.Query("type")
+
+		// Validação do tipo
+		if imageType == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "O parâmetro 'type' é obrigatório"})
+		}
+
+		// Consulta para buscar as imagens do produto pelo tipo
+		query := `SELECT id, name, path, type FROM images WHERE products_id = ? AND type = ?`
+
+		// Executa a consulta
+		rows, err := db.Query(query, productID, imageType)
+		if err != nil {
+			log.Println("Erro ao buscar imagens:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar imagens"})
+		}
+		defer rows.Close()
+
+		var images []Image
+		for rows.Next() {
+			var image Image
+			if err := rows.Scan(&image.ID, &image.Name, &image.Path, &image.Type); err != nil {
+				log.Println("Erro ao escanear imagem:", err)
+				return c.Status(500).JSON(fiber.Map{"error": "Erro ao ler imagem"})
+			}
+			images = append(images, image)
+		}
+
+		if len(images) == 0 {
+			return c.Status(404).JSON(fiber.Map{"message": "Nenhuma imagem encontrada para este produto e tipo"})
+		}
+
+		return c.Status(200).JSON(images)
+	}
+}
+
 // @Summary Obter imagem do produto
 // @Description Obtém as imagens associadas a um produto específico
 // @Tags Images

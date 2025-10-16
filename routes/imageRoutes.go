@@ -14,4 +14,6 @@ func RegisterImageRoutes(app *fiber.App, db *sql.DB) {
 	// Rota para obter a imagem de um produto específico
 	imageGroup.Get("/:product_id", controllers.GetImageOfProduct(db))
 	imageGroup.Post("/", controllers.CreateImage(db))
+	imageGroup.Get("/:product_id/type", controllers.GetImagesByProductAndType(db))
+
 }

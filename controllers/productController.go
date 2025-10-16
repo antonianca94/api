@@ -259,8 +259,16 @@ func GetAllProductsHome(db *sql.DB) fiber.Handler {
 func GetAllProducts(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		productsQuery := `
-		SELECT id, sku, name, price, quantity
-		FROM products
+			SELECT 
+				p.id, 
+				p.sku, 
+				p.name, 
+				p.price, 
+				p.quantity, 
+				cp.name AS category_name 
+			FROM products p
+			INNER JOIN categories_products cp 
+				ON p.categories_products_id = cp.id
 		`
 
 		rows, err := db.Query(productsQuery)
@@ -273,7 +281,7 @@ func GetAllProducts(db *sql.DB) fiber.Handler {
 		var products []Product
 		for rows.Next() {
 			var product Product
-			if err := rows.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity); err != nil {
+			if err := rows.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
 				log.Println("Erro ao escanear produto:", err)
 				return c.Status(500).JSON(fiber.Map{"error": "Erro ao ler produto"})
 			}

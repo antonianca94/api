@@ -30,6 +30,17 @@ type Product struct {
 	CategoryName string  `json:"category_name"`
 }
 
+type ProductByID struct {
+	ID           int     `json:"id"`
+	SKU          string  `json:"sku"`
+	Name         string  `json:"name"`
+	Price        float64 `json:"price"`
+	UsersId      int     `json:"users_id"`
+	Quantity     int     `json:"quantity"`
+	CategoryId   int     `json:"categories_product_id"`  
+	CategoryName string  `json:"category_name"`
+}
+
 type ProductHome struct {
 	ID        int     `json:"id"`
 	SKU       string  `json:"sku"`
@@ -83,7 +94,8 @@ func GetProductByID(db *sql.DB) fiber.Handler {
 				p.sku, 
 				p.name, 
 				p.price, 
-				p.quantity, 
+				p.quantity,
+				p.categories_products_id,
 				cp.name AS category_name 
 			FROM products p
 			INNER JOIN categories_products cp 
@@ -92,8 +104,18 @@ func GetProductByID(db *sql.DB) fiber.Handler {
 		`
 
 		row := db.QueryRow(productQuery, id)
-		var product Product
-		if err := row.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+		var product ProductByID
+		
+		// Atualizar o Scan para incluir CategoryId
+		if err := row.Scan(
+			&product.ID, 
+			&product.SKU, 
+			&product.Name, 
+			&product.Price, 
+			&product.Quantity,
+			&product.CategoryId,  // ADICIONAR ESTA LINHA
+			&product.CategoryName,
+		); err != nil {
 			if err == sql.ErrNoRows {
 				return c.Status(404).JSON(fiber.Map{"message": "Produto não encontrado"})
 			}

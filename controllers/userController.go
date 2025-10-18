@@ -345,3 +345,32 @@ func CreateUser(db *sql.DB) fiber.Handler {
 		return c.Status(200).JSON(fiber.Map{"message": "Usuário criado com sucesso", "user_id": lastInsertID})
 	}
 }
+
+// GetUserByUsername retorna um único usuário baseado no username
+// @Summary Retorna um usuário pelo username
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param username path string true "Username do usuário"
+// @Success 200 {object} User
+// @Failure 404 {object} map[string]string "User not found"
+// @Failure 500 {object} map[string]string "Failed to fetch user"
+// @Router /users/username/{username} [get]
+func GetUserByUsername(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		username := c.Params("username")
+		var user User
+		query := "SELECT id, status, username, password, name, surname, cpf, roles_id FROM users WHERE username = ?"
+		err := db.QueryRow(query, username).Scan(&user.ID, &user.Status, &user.Username, &user.Password, &user.Name, &user.Surname, &user.Cpf, &user.RolesId)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{"error": "Usuário não encontrado"})
+			}
+			log.Println("Erro ao buscar usuário pelo username:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Falha ao buscar usuário"})
+		}
+
+		return c.Status(200).JSON(user)
+	}
+}

@@ -1529,6 +1529,38 @@ paths:
       summary: Retorna os detalhes de um usuário pelo ID
       tags:
       - Users
+  /users/username/{username}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Username do usuário
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.User'
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to fetch user
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retorna um usuário pelo username
+      tags:
+      - Users
   /vendors:
     get:
       description: Obtém todos os vendors

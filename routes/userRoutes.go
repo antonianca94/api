@@ -15,4 +15,7 @@ func RegisterUserRoutes(app *fiber.App, db *sql.DB) {
 	userGroup.Get("/details/:id", controllers.GetUserDetailsByID(db))
 	userGroup.Delete("/:id", controllers.DeleteUserByID(db))
 	userGroup.Patch("/:id", controllers.PatchUserByID(db))
+
+	userGroup.Get("/username/:username", controllers.GetUserByUsername(db))
+
 }

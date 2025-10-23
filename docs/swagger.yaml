@@ -1161,6 +1161,39 @@ paths:
       summary: Atualizar produto por ID (parcial)
       tags:
       - Products
+  /products/search:
+    get:
+      description: Pesquisa produtos por nome, SKU ou categoria com paginação
+      parameters:
+      - description: Termo de pesquisa (busca em nome, SKU e categoria)
+        in: query
+        name: q
+        type: string
+      - default: 1
+        description: Número da página
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: Lista de produtos com informações de paginação
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao buscar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Pesquisar produtos
+      tags:
+      - Products
   /products/user/{user_id}:
     get:
       description: Obtém todos os produtos associados a um usuário específico

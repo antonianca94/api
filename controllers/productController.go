@@ -76,6 +76,139 @@ type ProductUpdate struct {
 	CategoryId *int    `json:"categories_product_id,omitempty"`
 }
 
+// @Summary Pesquisar produtos
+// @Description Pesquisa produtos por nome, SKU ou categoria com paginação
+// @Tags Products
+// @Param q query string false "Termo de pesquisa (busca em nome, SKU e categoria)"
+// @Param page query int false "Número da página" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Success 200 {object} map[string]interface{} "Lista de produtos com informações de paginação"
+// @Failure 500 {object} map[string]string "Erro ao buscar produtos"
+// @Router /products/search [get]
+func SearchProducts(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		searchTerm := c.Query("q", "")
+		page := c.QueryInt("page", 1)
+		limit := c.QueryInt("limit", 10)
+		offset := (page - 1) * limit
+
+		// Se não houver termo de pesquisa, retorna todos os produtos
+		var countQuery, productsQuery string
+		var args []interface{}
+
+		if searchTerm == "" {
+			// Conta total de produtos
+			countQuery = "SELECT COUNT(*) FROM products p"
+			
+			productsQuery = `
+				SELECT 
+					p.id, 
+					p.sku, 
+					p.name, 
+					p.price, 
+					p.quantity, 
+					cp.name AS category_name 
+				FROM products p
+				INNER JOIN categories_products cp 
+					ON p.categories_products_id = cp.id
+				ORDER BY p.id DESC
+				LIMIT ? OFFSET ?
+			`
+			args = []interface{}{limit, offset}
+		} else {
+			// Pesquisa com termo
+			searchPattern := "%" + searchTerm + "%"
+			
+			countQuery = `
+				SELECT COUNT(*) 
+				FROM products p
+				INNER JOIN categories_products cp 
+					ON p.categories_products_id = cp.id
+				WHERE p.name LIKE ? 
+					OR p.sku LIKE ? 
+					OR cp.name LIKE ?
+			`
+			
+			productsQuery = `
+				SELECT 
+					p.id, 
+					p.sku, 
+					p.name, 
+					p.price, 
+					p.quantity, 
+					cp.name AS category_name 
+				FROM products p
+				INNER JOIN categories_products cp 
+					ON p.categories_products_id = cp.id
+				WHERE p.name LIKE ? 
+					OR p.sku LIKE ? 
+					OR cp.name LIKE ?
+				ORDER BY p.id DESC
+				LIMIT ? OFFSET ?
+			`
+			args = []interface{}{searchPattern, searchPattern, searchPattern, limit, offset}
+		}
+
+		// Conta o total de produtos
+		var totalCount int
+		var err error
+		
+		if searchTerm == "" {
+			err = db.QueryRow(countQuery).Scan(&totalCount)
+		} else {
+			searchPattern := "%" + searchTerm + "%"
+			err = db.QueryRow(countQuery, searchPattern, searchPattern, searchPattern).Scan(&totalCount)
+		}
+		
+		if err != nil {
+			log.Println("Erro ao contar produtos:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao contar produtos"})
+		}
+
+		// Calcula o total de páginas
+		totalPages := 0
+		if totalCount > 0 {
+			totalPages = (totalCount + limit - 1) / limit
+		}
+
+		// Busca os produtos
+		rows, err := db.Query(productsQuery, args...)
+		if err != nil {
+			log.Println("Erro ao buscar produtos:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao buscar produtos"})
+		}
+		defer rows.Close()
+
+		var products []Product
+		for rows.Next() {
+			var product Product
+			if err := rows.Scan(&product.ID, &product.SKU, &product.Name, &product.Price, &product.Quantity, &product.CategoryName); err != nil {
+				log.Println("Erro ao escanear produto:", err)
+				return c.Status(500).JSON(fiber.Map{"error": "Erro ao ler produto"})
+			}
+			products = append(products, product)
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Println("Erro com as linhas:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao processar produtos"})
+		}
+
+		// Retorna array vazio se não houver produtos
+		if products == nil {
+			products = []Product{}
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"products":    products,
+			"currentPage": page,
+			"totalCount":  totalCount,
+			"totalPages":  totalPages,
+			"searchTerm":  searchTerm,
+		})
+	}
+}
+
 // @Summary Obter produto por ID
 // @Description Obtém um produto com base no ID
 // @Tags Products

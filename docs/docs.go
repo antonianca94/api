@@ -1438,6 +1438,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/products/search": {
+            "get": {
+                "description": "Pesquisa produtos por nome, SKU ou categoria com paginação",
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Pesquisar produtos",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Termo de pesquisa (busca em nome, SKU e categoria)",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Número da página",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de produtos com informações de paginação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar produtos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products/user/{user_id}": {
             "get": {
                 "description": "Obtém todos os produtos associados a um usuário específico",

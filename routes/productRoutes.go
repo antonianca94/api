@@ -10,6 +10,9 @@ import (
 func RegisterProductRoutes(app *fiber.App, db *sql.DB) {
 
 	productGroup := app.Group("/products")
+
+	productGroup.Get("/search", controllers.SearchProducts(db))
+
 	productGroup.Get("/home", controllers.GetAllProductsHome(db))
 	productGroup.Get("/", controllers.GetAllProducts(db))
 	productGroup.Get("/user/:user_id", controllers.GetAllProductsByUserID(db))

@@ -1030,11 +1030,10 @@ paths:
         type: integer
       responses:
         "200":
-          description: OK
+          description: Lista de produtos com informações de paginação
           schema:
-            items:
-              $ref: '#/definitions/controllers.Product'
-            type: array
+            additionalProperties: true
+            type: object
         "500":
           description: Erro ao buscar produtos
           schema:

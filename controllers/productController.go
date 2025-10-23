@@ -190,7 +190,7 @@ func GetProductsByCategoryName(db *sql.DB) fiber.Handler {
 // @Param category_id path int true "ID da Categoria"
 // @Param page query int false "Número da página" default(1)
 // @Param limit query int false "Limite de itens por página" default(10)
-// @Success 200 {array} Product
+// @Success 200 {object} map[string]interface{} "Lista de produtos com informações de paginação"
 // @Failure 500 {object} map[string]string "Erro ao buscar produtos"
 // @Router /products/category/id/{category_id} [get]
 func GetProductsByCategoryID(db *sql.DB) fiber.Handler {
@@ -199,6 +199,22 @@ func GetProductsByCategoryID(db *sql.DB) fiber.Handler {
 		page := c.QueryInt("page", 1)
 		limit := c.QueryInt("limit", 10)
 		offset := (page - 1) * limit
+
+		// Conta o total de produtos na categoria
+		var totalCount int
+		countQuery := `
+			SELECT COUNT(*) 
+			FROM products p
+			WHERE p.categories_products_id = ?
+		`
+		err := db.QueryRow(countQuery, categoryID).Scan(&totalCount)
+		if err != nil {
+			log.Println("Erro ao contar produtos:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Erro ao contar produtos"})
+		}
+
+		// Calcula o total de páginas
+		totalPages := (totalCount + limit - 1) / limit
 
 		productsQuery := `
             SELECT 
@@ -237,7 +253,12 @@ func GetProductsByCategoryID(db *sql.DB) fiber.Handler {
 			return c.Status(500).JSON(fiber.Map{"error": "Erro ao processar produtos"})
 		}
 
-		return c.Status(200).JSON(products)
+		return c.Status(200).JSON(fiber.Map{
+			"products":    products,
+			"currentPage": page,
+			"totalCount":  totalCount,
+			"totalPages":  totalPages,
+		})
 	}
 }
 

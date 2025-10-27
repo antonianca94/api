@@ -1,5 +1,34 @@
 basePath: /
 definitions:
+  controllers.Buyer:
+    properties:
+      address:
+        type: string
+      cep:
+        type: string
+      city:
+        type: string
+      cnpj:
+        type: string
+      country:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      neighborhood:
+        type: string
+      phone:
+        type: string
+      state:
+        type: string
+      users_id:
+        type: integer
+    type: object
   controllers.Cart:
     properties:
       code:
@@ -191,6 +220,191 @@ info:
   title: API do AgroFood
   version: "1.0"
 paths:
+  /buyers:
+    get:
+      description: Obtém todos os compradores
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Buyer'
+            type: array
+        "500":
+          description: Erro ao buscar compradores
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter todos os compradores
+      tags:
+      - Buyers
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo comprador
+      parameters:
+      - description: Comprador para criar
+        in: body
+        name: buyer
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Buyer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.Buyer'
+        "400":
+          description: Erro ao criar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Criar um novo comprador
+      tags:
+      - Buyers
+  /buyers/{id}:
+    delete:
+      description: Deleta um comprador específico pelo ID
+      parameters:
+      - description: ID do Comprador
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Comprador deletado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Comprador não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao deletar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deletar comprador por ID
+      tags:
+      - Buyers
+    get:
+      description: Obtém um comprador específico pelo ID
+      parameters:
+      - description: ID do Comprador
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Buyer'
+        "404":
+          description: Comprador não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter comprador por ID
+      tags:
+      - Buyers
+    patch:
+      consumes:
+      - application/json
+      description: Atualiza um comprador específico pelo ID (permite atualizações
+        parciais)
+      parameters:
+      - description: ID do Comprador
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados do comprador para atualizar
+        in: body
+        name: buyer
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Buyer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Buyer'
+        "400":
+          description: Erro ao analisar requisição
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Comprador não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualizar comprador por ID
+      tags:
+      - Buyers
+  /buyers/user/{users_id}:
+    get:
+      description: Obtém um comprador específico pelo users_id
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: users_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Buyer'
+        "404":
+          description: Comprador não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar comprador
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter comprador por User ID
+      tags:
+      - Buyers
   /cart:
     get:
       consumes:

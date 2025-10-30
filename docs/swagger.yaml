@@ -77,6 +77,35 @@ definitions:
       name:
         type: string
     type: object
+  controllers.CheckoutRequest:
+    properties:
+      buyers_id:
+        type: integer
+      payment_method:
+        type: string
+      shipping_address:
+        type: string
+      shipping_cep:
+        type: string
+      shipping_city:
+        type: string
+      shipping_state:
+        type: string
+    type: object
+  controllers.CheckoutResponse:
+    properties:
+      message:
+        type: string
+      orders:
+        description: ✅ Com info do vendor
+        items:
+          $ref: '#/definitions/controllers.OrderDetail'
+        type: array
+      success:
+        type: boolean
+      total_orders:
+        type: integer
+    type: object
   controllers.Image:
     properties:
       id:
@@ -89,6 +118,64 @@ definitions:
         type: integer
       type:
         type: string
+    type: object
+  controllers.Order:
+    properties:
+      buyers_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_number:
+        type: string
+      payment_method:
+        type: string
+      shipping_address:
+        type: string
+      shipping_cep:
+        type: string
+      shipping_city:
+        type: string
+      shipping_state:
+        type: string
+      status:
+        type: string
+      total:
+        type: number
+      users_id:
+        type: integer
+      vendors_id:
+        type: integer
+    type: object
+  controllers.OrderDetail:
+    properties:
+      buyers_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_number:
+        type: string
+      payment_method:
+        type: string
+      shipping_address:
+        type: string
+      shipping_cep:
+        type: string
+      shipping_city:
+        type: string
+      shipping_state:
+        type: string
+      status:
+        type: string
+      total:
+        type: number
+      users_id:
+        type: integer
+      vendor:
+        $ref: '#/definitions/controllers.VendorInfo'
     type: object
   controllers.Product:
     properties:
@@ -212,6 +299,17 @@ definitions:
         type: string
       users_id:
         type: integer
+    type: object
+  controllers.VendorInfo:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
     type: object
 host: localhost:3002
 info:
@@ -937,6 +1035,94 @@ paths:
       summary: Atualiza parcialmente uma Categoria pelo ID
       tags:
       - Categories
+  /checkout-multi-vendor/{user_id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Dados do checkout
+        in: body
+        name: checkout
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pedidos criados com sucesso
+          schema:
+            $ref: '#/definitions/controllers.CheckoutResponse'
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao processar pedido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Finaliza a compra criando pedidos separados por vendor
+      tags:
+      - Checkout
+  /checkout/{user_id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Dados do checkout
+        in: body
+        name: checkout
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pedido criado com sucesso
+          schema:
+            $ref: '#/definitions/controllers.Order'
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Carrinho não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao processar pedido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Finaliza a compra do carrinho
+      tags:
+      - Checkout
   /images:
     post:
       consumes:
@@ -1110,6 +1296,96 @@ paths:
       summary: Obter imagem por nome
       tags:
       - Images
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Order'
+        "404":
+          description: Pedido não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca um pedido pelo ID
+      tags:
+      - Orders
+  /orders/{id}/details:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Busca pedido com informações do vendor e itens
+      tags:
+      - Orders
+  /orders/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Order'
+            type: array
+      summary: Lista pedidos de um usuário
+      tags:
+      - Orders
+  /orders/user/{user_id}/by-vendor:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Lista pedidos de um usuário agrupados por vendor
+      tags:
+      - Orders
   /products:
     get:
       description: Obtém todos os produtos

@@ -227,6 +227,7 @@ func GetProductByID(db *sql.DB) fiber.Handler {
 				p.sku, 
 				p.name, 
 				p.price, 
+				p.users_id,
 				p.quantity,
 				p.categories_products_id,
 				cp.name AS category_name 
@@ -245,6 +246,7 @@ func GetProductByID(db *sql.DB) fiber.Handler {
 			&product.SKU, 
 			&product.Name, 
 			&product.Price, 
+			&product.UsersId, 
 			&product.Quantity,
 			&product.CategoryId,  // ADICIONAR ESTA LINHA
 			&product.CategoryName,

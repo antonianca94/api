@@ -16,4 +16,13 @@ func RegisterVendorRoutes(app *fiber.App, db *sql.DB) {
 	vendorGroup.Patch("/:id", controllers.UpdateVendor(db))     
 	vendorGroup.Get("/user/:users_id", controllers.GetVendorByUserID(db))
 
+	app.Post("/checkout-multi-vendor/:user_id", controllers.FinalizeCheckoutMultiVendor(db))
+
+    app.Get("/orders/user/:user_id/by-vendor", controllers.GetOrdersByVendor(db))
+
+	app.Get("/orders/user/:user_id", controllers.GetUserOrders(db))
+
+	app.Get("/orders/:id", controllers.GetOrderByID(db))
+
+    app.Get("/orders/:id/details", controllers.GetOrderWithVendorInfo(db))
 }

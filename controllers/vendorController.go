@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"            // ⭐ Adicione se não tiver
+	"fmt" // ⭐ Adicione se não tiver
 	"log"
-	"strings"
-	"time"
 	"strconv"
-	"sync"           // ⭐ ADICIONAR
+	"strings"
+	"sync" // ⭐ ADICIONAR
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -44,9 +45,8 @@ type CheckoutResponse struct {
 	Success     bool          `json:"success"`
 	Message     string        `json:"message"`
 	TotalOrders int           `json:"total_orders"`
-	Orders      []OrderDetail `json:"orders"`  // ✅ Com info do vendor
+	Orders      []OrderDetail `json:"orders"` // ✅ Com info do vendor
 }
-
 
 type CheckoutRequest struct {
 	PaymentMethod   string `json:"payment_method"`
@@ -56,7 +56,6 @@ type CheckoutRequest struct {
 	ShippingCEP     string `json:"shipping_cep"`
 	BuyersID        *int   `json:"buyers_id,omitempty"`
 }
-
 
 // Struct para pedido com vendor
 type OrderWithVendor struct {
@@ -101,7 +100,7 @@ type Order struct {
 	CreatedAt       string  `json:"created_at"`
 	UsersID         int     `json:"users_id"`
 	BuyersID        *int    `json:"buyers_id,omitempty"`
-	VendorsID    	int     `json:"vendors_id"`
+	VendorsID       int     `json:"vendors_id"`
 }
 
 // Define struct para itens do pedido
@@ -141,7 +140,7 @@ type OrderDetail struct {
 func validateVendorData(db *sql.DB, cnpj, email string, excludeID int) (*VendorValidationResult, error) {
 	var query string
 	var params []interface{}
-	
+
 	if excludeID > 0 {
 		// Para updates - exclui o próprio vendor
 		query = `
@@ -173,7 +172,6 @@ func validateVendorData(db *sql.DB, cnpj, email string, excludeID int) (*VendorV
 		EmailExists: emailCount > 0,
 	}, nil
 }
-
 
 // @Summary Obter todos os vendors
 // @Description Obtém todos os vendors
@@ -470,7 +468,6 @@ func GetVendorByUserID(db *sql.DB) fiber.Handler {
 	}
 }
 
-// GetVendorOrders retorna todos os pedidos de um vendor específico
 func GetVendorOrders(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		vendorID := c.Params("vendor_id")
@@ -479,12 +476,13 @@ func GetVendorOrders(db *sql.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": "ID do vendor inválido"})
 		}
 
+		// Query corrigida - removido u.email que não existe
 		query := `
 			SELECT 
 				o.id, o.order_number, o.status, o.total, o.payment_method,
 				o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_cep,
 				o.created_at, o.users_id, o.vendors_id, o.buyers_id,
-				u.name as buyer_name, u.email as buyer_email
+				u.name as buyer_name
 			FROM orders o
 			INNER JOIN users u ON o.users_id = u.id
 			WHERE o.vendors_id = ?
@@ -500,19 +498,19 @@ func GetVendorOrders(db *sql.DB) fiber.Handler {
 
 		type OrderWithBuyer struct {
 			Order
-			BuyerName  string `json:"buyer_name"`
-			BuyerEmail string `json:"buyer_email"`
+			BuyerName string `json:"buyer_name"`
 		}
 
 		var orders []OrderWithBuyer
 		for rows.Next() {
 			var order OrderWithBuyer
+			// Removido &order.BuyerEmail do Scan
 			err := rows.Scan(
 				&order.ID, &order.OrderNumber, &order.Status, &order.Total,
 				&order.PaymentMethod, &order.ShippingAddress, &order.ShippingCity,
 				&order.ShippingState, &order.ShippingCEP, &order.CreatedAt,
 				&order.UsersID, &order.VendorsID, &order.BuyersID,
-				&order.BuyerName, &order.BuyerEmail,
+				&order.BuyerName,
 			)
 			if err != nil {
 				log.Println("Erro ao ler pedido:", err)
@@ -529,7 +527,9 @@ func GetVendorOrders(db *sql.DB) fiber.Handler {
 	}
 }
 
-// GetVendorOrderDetails retorna detalhes completos de um pedido do vendor
+// GetVendorOrderDetails - VERSÃO CORRIGIDA
+// Substitua a função existente no seu arquivo de controllers
+
 func GetVendorOrderDetails(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		vendorID := c.Params("vendor_id")
@@ -549,16 +549,16 @@ func GetVendorOrderDetails(db *sql.DB) fiber.Handler {
 			UsersID         int     `json:"users_id"`
 			VendorsID       int     `json:"vendors_id"`
 			BuyerName       string  `json:"buyer_name"`
-			BuyerEmail      string  `json:"buyer_email"`
 			BuyerPhone      string  `json:"buyer_phone"`
 		}
 
+		// Query corrigida - busca email e phone da tabela buyers se existir
 		orderQuery := `
 			SELECT 
 				o.id, o.order_number, o.status, o.total, o.payment_method,
 				o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_cep,
 				o.created_at, o.users_id, o.vendors_id,
-				u.name as buyer_name, u.email as buyer_email, 
+				u.name as buyer_name,
 				COALESCE(b.phone, '') as buyer_phone
 			FROM orders o
 			INNER JOIN users u ON o.users_id = u.id
@@ -571,7 +571,7 @@ func GetVendorOrderDetails(db *sql.DB) fiber.Handler {
 			&order.PaymentMethod, &order.ShippingAddress, &order.ShippingCity,
 			&order.ShippingState, &order.ShippingCEP, &order.CreatedAt,
 			&order.UsersID, &order.VendorsID,
-			&order.BuyerName, &order.BuyerEmail, &order.BuyerPhone,
+			&order.BuyerName, &order.BuyerPhone,
 		)
 
 		if err != nil {
@@ -755,10 +755,10 @@ func GetVendorOrdersStatistics(db *sql.DB) fiber.Handler {
 func generateOrderNumber() string {
 	orderCounterLock.Lock()
 	defer orderCounterLock.Unlock()
-	
+
 	now := time.Now()
 	currentSecond := now.Unix()
-	
+
 	// Se mudou de segundo, resetar contador
 	if currentSecond != lastOrderTime {
 		orderCounter = 0
@@ -766,7 +766,7 @@ func generateOrderNumber() string {
 	} else {
 		orderCounter++
 	}
-	
+
 	// Formato: ORD-YYYYMMDDHHMMSS-XXXX
 	timestamp := now.Format("20060102150405")
 	return fmt.Sprintf("ORD-%s-%04d", timestamp, orderCounter)
@@ -1066,7 +1066,6 @@ func GetUserOrders(db *sql.DB) fiber.Handler {
 	}
 }
 
-
 // FinalizeCheckoutMultiVendor processa checkout separando por vendors
 // @Summary Finaliza a compra criando pedidos separados por vendor
 // @Tags Checkout
@@ -1147,7 +1146,7 @@ func FinalizeCheckoutMultiVendor(db *sql.DB) fiber.Handler {
 			INNER JOIN vendors v ON p.users_id = v.users_id
 			WHERE ci.cart_id = ?
 		`
-		
+
 		rows, err := tx.Query(query, cart.ID)
 		if err != nil {
 			log.Println("❌ [CHECKOUT] Erro ao buscar itens:", err)
@@ -1183,9 +1182,9 @@ func FinalizeCheckoutMultiVendor(db *sql.DB) fiber.Handler {
 				stock, vendorID                      int
 				vendorName, vendorEmail, vendorPhone string
 			)
-			
-			if err := rows.Scan(&cartItemID, &quantity, &cartID, 
-				&productID, &productName, &price, &stock, 
+
+			if err := rows.Scan(&cartItemID, &quantity, &cartID,
+				&productID, &productName, &price, &stock,
 				&vendorID, &vendorName, &vendorEmail, &vendorPhone); err != nil {
 				log.Println("❌ [CHECKOUT] Erro ao ler item:", err)
 				return c.Status(500).JSON(fiber.Map{"error": "Erro ao processar itens"})
@@ -1209,7 +1208,7 @@ func FinalizeCheckoutMultiVendor(db *sql.DB) fiber.Handler {
 					VendorName:  vendorName,
 					VendorEmail: vendorEmail,
 					VendorPhone: vendorPhone,
-					Items:       []struct {
+					Items: []struct {
 						CartItemID  int
 						Quantity    int
 						ProductID   int
@@ -1246,14 +1245,14 @@ func FinalizeCheckoutMultiVendor(db *sql.DB) fiber.Handler {
 		}
 
 		createdAt := time.Now().Format("2006-01-02 15:04:05")
-		var createdOrders []OrderDetail  // ⭐ Usar OrderDetail
+		var createdOrders []OrderDetail // ⭐ Usar OrderDetail
 
 		// Criar pedido para cada vendor
 		for vendorID, group := range vendorGroups {
 			var orderTotal float64
-			
+
 			log.Printf("🛒 [CHECKOUT] Processando vendor: %s (ID: %d)", group.VendorName, vendorID)
-			
+
 			// Calcular total
 			for _, item := range group.Items {
 				orderTotal += item.Price * float64(item.Quantity)
@@ -1401,7 +1400,7 @@ func GetOrdersByVendor(db *sql.DB) fiber.Handler {
 		for rows.Next() {
 			var order OrderWithVendor
 			var vendorName string
-			
+
 			err := rows.Scan(
 				&order.ID, &order.OrderNumber, &order.Status, &order.Total,
 				&order.PaymentMethod, &order.ShippingAddress, &order.ShippingCity,
@@ -1490,7 +1489,7 @@ func GetOrderWithVendorInfo(db *sql.DB) fiber.Handler {
 		var items []OrderItemWithVendor
 		for rows.Next() {
 			var item OrderItemWithVendor
-			err := rows.Scan(&item.ID, &item.Quantity, &item.Price, 
+			err := rows.Scan(&item.ID, &item.Quantity, &item.Price,
 				&item.OrdersID, &item.ProductsID, &item.ProductName)
 			if err != nil {
 				log.Println("Erro ao ler item:", err)
@@ -1506,4 +1505,3 @@ func GetOrderWithVendorInfo(db *sql.DB) fiber.Handler {
 		})
 	}
 }
-
